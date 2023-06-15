@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+#define BUFFER_SIZE 1024
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Verwendung: %s <Server-IP-Adresse>\n", argv[0]);
+        return 1;
+    }
+
+    const char *serverIP = argv[1];
+    struct addrinfo hints, *res;
+    int sockfd;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // IPv4 oder IPv6
+    hints.ai_socktype = SOCK_STREAM;
+
+    // IP-Adresse in Hostnamen umwandeln
+    if (getaddrinfo(serverIP, NULL, &hints, &res) != 0) {
+        fprintf(stderr, "Konnte Hostnamen nicht auflösen.\n");
+        return 1;
+    }
+
+    // Socket erstellen
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sockfd < 0) {
+        fprintf(stderr, "Fehler beim Erstellen des Sockets.\n");
+        return 1;
+    }
+
+    // Verbindung zum Server herstellen
+    if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
+        fprintf(stderr, "Fehler beim Verbinden zum Server.\n");
+        return 1;
+    }
+
+    // Nachricht an den Server senden
+    const char *message = "Hallo Server!";
+    if (send(sockfd, message, strlen(message), 0) < 0) {
+        fprintf(stderr, "Fehler beim Senden der Nachricht.\n");
+        return 1;
+    }
+
+    printf("Nachricht erfolgreich gesendet.\n");
+
+    // Socket schließen
+    close(sockfd);
+    freeaddrinfo(res);
+
+    return 0;
+}

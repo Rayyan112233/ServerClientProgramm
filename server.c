@@ -11,6 +11,25 @@ int main() {
     int server_socket, client_socket;
     struct sockaddr_in server_address, client_address;
     char buffer[MAX_BUFFER_SIZE];
+    const char *serverIP = argv[1];
+    const char *service = argv[2];
+    struct addrinfo hints, *res;
+    int sockfd;
+
+       memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // IPv4 oder IPv6
+    hints.ai_socktype = SOCK_STREAM;
+
+    // IP-Adresse und Portnummer auflösen
+    if (getaddrinfo(serverIP, service, &hints, &res) != 0) {
+        fprintf(stderr, "Konnte Hostnamen oder Dienst nicht auflösen.\n");
+        return 1;
+    }
+       // IP-Adresse in Hostnamen umwandeln
+    if (getaddrinfo(serverIP, NULL, &hints, &res) != 0) {
+        fprintf(stderr, "Konnte Hostnamen nicht auflösen.\n");
+        return 1;
+    }
 
     // Create socket
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
